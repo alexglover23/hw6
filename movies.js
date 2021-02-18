@@ -18,6 +18,8 @@ window.addEventListener('DOMContentLoaded', async function(event) {
     // console to ensure you've got good data
     // ⬇️ ⬇️ ⬇️
   
+    let db = firebase.firestore()
+
     let apiKey = '0e87e1658fbd62ac8b311e5364fdc5d3'
     let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
     //console.log(response)
@@ -32,7 +34,7 @@ window.addEventListener('DOMContentLoaded', async function(event) {
     //   into the existing DOM element with the class name .movies
     // - Include a "watched" button to click for each movie
     // - Give each "movie" a unique class name based on its numeric
-    //   ID field. ///....pick up this part....///
+    //   ID field.
     // Some HTML that would look pretty good... replace with real values :)
     // <div class="w-1/5 p-4 movie-abcdefg1234567">
     //   <img src="https://image.tmdb.org/t/p/w500/moviePosterPath.jpg" class="w-full">
@@ -40,19 +42,50 @@ window.addEventListener('DOMContentLoaded', async function(event) {
     // </div>
     // ⬇️ ⬇️ ⬇️
   
+    
     for (let i = 0; i < movies.results.length; i++) {
       let movieList = movies.results[i]
+      let movieID = movieList.id
       let moviePoster = movieList.poster_path
-      console.log(moviePoster)
-      
+      console.log(movieID)
       let movie = document.querySelector('.movies').insertAdjacentHTML('beforeend', `
-        <div class="w-1/5 p-4 movie-abcdefg1234567">
+        <div class="mov-${movieID} w-1/5 p-4">
           <img src="https://image.tmdb.org/t/p/w500/${moviePoster}" class="w-full">
           <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
         </div>
       `)
-    }
 
+        let querySnapshot = await db.collection('watched').get()
+        //console.log(`Number of movies in collection: ${querySnapshot.size}`)
+
+        let alreadyWatched = querySnapshot.docs
+    
+        for (let i=0; i<alreadyWatched.length; i++) {
+          //console.log(alreadyWatched[i].id)
+        if (alreadyWatched[i].id == movieID) {
+         document.querySelector(`.mov-${movieID}`).classList.add('opacity-20')
+        }
+      }
+    
+    
+
+      let watchButton = document.querySelector(`.mov-${movieID} .watched-button`).addEventListener('click', async function(event) {
+        event.preventDefault()
+        //console.log(`I watched ${movieID} movie`)
+        document.querySelector(`.mov-${movieID}`).classList.add('opacity-20')
+
+        //let todoText = document.querySelector('#todo').value
+
+        
+          let newDoc = await db.collection('watched').doc(`${movieID}`).set({})
+    
+          
+          //console.log(`new movie doc with ID ${movieID} created`)
+      })
+       
+
+    
+    }
     // ⬆️ ⬆️ ⬆️ 
     // End Step 2
   
@@ -68,6 +101,8 @@ window.addEventListener('DOMContentLoaded', async function(event) {
     //   to remove the class if the element already contains it.
     // ⬇️ ⬇️ ⬇️
   
+    
+
     // ⬆️ ⬆️ ⬆️ 
     // End Step 3
   
